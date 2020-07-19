@@ -1,11 +1,9 @@
 require('dotenv').config()
 const express = require('express')
-const { response, request } = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
 const Contact = require('./models/contact')
-const contact = require('./models/contact')
 
 
 app.use(cors())
@@ -13,7 +11,7 @@ app.use(express.static('build'))
 app.use(express.json())
 
 
-morgan.token('person', (req, res) => {
+morgan.token('person', (req) => {
     return JSON.stringify(req.body)
 })
 
@@ -21,14 +19,14 @@ morgan.token('person', (req, res) => {
 
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person', {
-    skip: (req, res) => {
-        return req.method !== "POST" 
+    skip: (req) => {
+        return req.method !== 'POST' 
     }
 }))
 
 app.use(morgan('tiny', {
-    skip: (req, res) => {
-        return req.method === "POST"  
+    skip: (req) => {
+        return req.method === 'POST'  
     }
 }))
 
@@ -43,19 +41,19 @@ app.get('/api/persons', (request, response) => {
     
 })
 
-app.get('/info', (request, response, pituus) => {
+app.get('/info', (request, response) => {
     
     Contact
         .find({})
         .then(contact => {
             let pituus = contact.length
             let date = Date()
-             response.send(`Phonebook has info for ${pituus} people <br></br>${date}`)
+            response.send(`Phonebook has info for ${pituus} people <br></br>${date}`)
         })
     
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     Contact.findById(request.params.id)
         .then(contact => {
             if(contact){
@@ -85,7 +83,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
     Contact.findByIdAndDelete(request.params.id)
-        .then(result => {
+        .then(() => {
             response.status(204).end()
         })
         .catch(error => next(error))   
@@ -140,9 +138,10 @@ const errorHandler = (error, request, response, next) => {
 }
 app.use(errorHandler)
 
+// eslint-disable-next-line no-undef
 const PORT = process.env.PORT
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`)
 })
 
